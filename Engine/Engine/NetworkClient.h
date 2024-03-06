@@ -20,6 +20,8 @@ public:
 		return instance;
 	}
 
+	bool IsInitialized() { return initialized; }
+
 protected:
 	void Initialize();
 	void Update();

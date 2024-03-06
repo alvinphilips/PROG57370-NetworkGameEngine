@@ -18,6 +18,7 @@ public:
 		return instance;
 	}
 
+	bool IsInitialized() { return initialized; }
 	void SendPacket(RakNet::BitStream& bs);
 
 protected:
