@@ -1,20 +1,9 @@
 #include "EngineCore.h"
 #include "AnimatedSprite.h"
 #include "RenderSystem.h"
-#include "EngineTime.h"
-#include "Entity.h"
+#include "TextureAsset.h"
 
 IMPLEMENT_DYNAMIC_CLASS(AnimatedSprite);
-
-void AnimatedSprite::Initialize() 
-{
-    Sprite::Initialize();
-}
-
-void AnimatedSprite::Destroy() 
-{
-    Sprite::Destroy();
-}
 
 void AnimatedSprite::Update() 
 {
@@ -51,6 +40,7 @@ void AnimatedSprite::Update()
 void AnimatedSprite::Load(json::JSON& node)
 {
     Sprite::Load(node);
+
     if (node.hasKey("SpriteSheet")) 
     {
         json::JSON spriteSheetNode = node["SpriteSheet"];
@@ -70,6 +60,12 @@ void AnimatedSprite::Load(json::JSON& node)
 
         this->SetSpriteSheet(spriteSheetRows, spriteSheetColumns, totalFrames);
     }
+}
+
+void AnimatedSprite::DeserializeCreate(RakNet::BitStream& bitStream)
+{
+    Sprite::DeserializeCreate(bitStream);
+    SetSpriteSheet(spriteSheetRows, spriteSheetColumns, totalFrames);
 }
 
 void AnimatedSprite::SetSpriteSheet(int rows, int cols, int _totalFrames) 

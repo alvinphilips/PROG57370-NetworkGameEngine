@@ -6,22 +6,24 @@
 #include "Asset.h"
 #include "SDL_image.h"
 
-class TextureAsset final : public Asset {
+class TextureAsset final : public Asset 
+{
+    DECLARE_DYNAMIC_DERIVED_CLASS(TextureAsset, Asset)
+
+public:
+    IVec2 GetDimensions() const { return IVec2(width, height); }
+    int GetWidth() const { return width; }
+    int GetHeight() const { return height; }
+    SDL_Texture* GetTexture() const { return texture; }
+
+protected:
+    void Initialize() override;
+    void Destroy() override;
+
+private:
     SDL_Texture* texture = nullptr;
     int width = 1;
     int height = 1;
-
-	DECLARE_DYNAMIC_DERIVED_CLASS(TextureAsset, Asset)
-    TextureAsset() = default;
-    ~TextureAsset() override = default;
-    void Initialize() override;
-    void Destroy() override;
-    void Load(json::JSON&) override;
-    IVec2 GetDimensions() const;
-    SDL_Texture* GetTexture() const
-    {
-	    return texture;
-    }
 };
 
 #endif // !_TEXTURE_ASSET_H_

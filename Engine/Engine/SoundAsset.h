@@ -8,16 +8,17 @@
 
 class SoundAsset final : public Asset
 {
-    Mix_Chunk* sound = nullptr;
+    DECLARE_DYNAMIC_DERIVED_CLASS(SoundAsset, Asset)
 
-	DECLARE_DYNAMIC_DERIVED_CLASS(SoundAsset, Asset)
-    SoundAsset() = default;
-    ~SoundAsset() override = default;
-    void Initialize() override;
+public:
+    Mix_Chunk* GetSound() const { return sound; };
+
+protected:
     void Destroy() override;
     void Load(json::JSON&) override;
 
-    Mix_Chunk* GetSound() const;
+private:
+    Mix_Chunk* sound = nullptr;
 };
 
 #endif // !_SOUND_ASSET_H_

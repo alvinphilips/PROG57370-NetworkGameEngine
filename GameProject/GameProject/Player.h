@@ -4,6 +4,8 @@
 
 #include "GameCore.h"
 
+class BoxCollider;
+
 class Player : public Component
 {
     DECLARE_DYNAMIC_DERIVED_CLASS(Player, Component)
@@ -17,6 +19,8 @@ private:
     Vec2 start_pos;
     BoxCollider* collider = nullptr;
     STRCODE game_over_scene = -1;
+
+    Entity* networkedEntity = nullptr;
 };
 
 #endif // PLAYER_H

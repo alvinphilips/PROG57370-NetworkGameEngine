@@ -11,17 +11,13 @@ struct AssetMapEntry
 	unsigned int ref_count;
 };
 
-class AssetManager {
+class AssetManager 
+{
 	DECLARE_SINGLETON(AssetManager)
-
-	std::string assetDirectory = "../Assets";
-	bool recursiveSearch = true;
-	std::map<STRCODE, AssetMapEntry> assets;
 
 public:
 	void Initialize();
 	void Destroy();
-
 	void AddAsset(Asset* asset);
 
 	void LoadSceneAsset(std::string& guid);
@@ -36,6 +32,11 @@ public:
 	void RemoveAsset(STRCODE id);
 
 	void Load(const std::string& config_file);
+
+private:
+	std::string assetDirectory = "../Assets";
+	bool recursiveSearch = true;
+	std::map<STRCODE, AssetMapEntry> assets;
 };
 
 #endif // !_ASSET_MANAGER_H_

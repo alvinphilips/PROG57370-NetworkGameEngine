@@ -2,6 +2,8 @@
 #include "SceneManager.h"
 #include "Scene.h"
 
+#include "NetworkServer.h"
+
 void SceneManager::Load()
 {
 	std::ifstream inputStream(DATA_FILE);
@@ -67,6 +69,102 @@ void SceneManager::Initialize()
 	for (Scene* scene : loadedScenes)
 	{
 		scene->Initialize();
+	}
+}
+
+void SceneManager::NetworkUpdate()
+{
+	for (Scene* scene : loadedScenes)
+	{
+		RakNet::BitStream bs;
+		bs.Write((unsigned char)NetworkPacketIds::MSG_SCENE_MANAGER);
+		bs.Write((unsigned char)NetworkPacketIds::MSG_SCENE_UPDATE);
+		bs.Write(scene->uid);
+		scene->Serialize(bs);
+
+		NetworkServer::Instance().SendPacket(bs);
+	}
+}
+
+void SceneManager::SerializeSnapshot()
+{
+	for (Scene* scene : loadedScenes)
+	{
+		RakNet::BitStream bitStream;
+		bitStream.Write((unsigned char)NetworkPacketIds::MSG_SCENE_MANAGER);
+		bitStream.Write((unsigned char)NetworkPacketIds::MSG_SNAPSHOT);
+		scene->SerializeSnapshot(bitStream);
+		NetworkServer::Instance().SendPacket(bitStream);
+	}
+}
+
+void SceneManager::ProcessPacket(RakNet::BitStream& bitStream)
+{
+	unsigned char packet = 0;
+	bitStream.Read(packet);
+	switch (packet)
+	{
+		case NetworkPacketIds::MSG_SCENE_UPDATE:
+		{
+			STRCODE sceneUid = 0;
+			bitStream.Read(sceneUid);
+			for (Scene* scene : loadedScenes)
+			{
+				if (scene->uid == sceneUid)
+				{
+					scene->Deserialize(bitStream);
+					break;
+				}
+			}
+		}
+		break;
+
+		case NetworkPacketIds::MSG_CREATE_ENTITY:
+		{
+			STRCODE sceneUid = 0;
+			bitStream.Read(sceneUid);
+			for (Scene* scene : loadedScenes)
+			{
+				if (scene->uid == sceneUid)
+				{
+					scene->DeserializeCreateEntity(bitStream);
+					break;
+				}
+			}
+		}
+		break;
+
+		case NetworkPacketIds::MSG_CREATE_COMPONENT:
+		{
+			STRCODE sceneUid = 0;
+			bitStream.Read(sceneUid);
+			for (Scene* scene : loadedScenes)
+			{
+				if (scene->uid == sceneUid)
+				{
+					scene->DeserializeCreateEntityComponent(bitStream);
+					break;
+				}
+			}
+		}
+		break;
+
+
+		case MSG_SNAPSHOT:
+		{
+			STRCODE sceneUid = 0;
+			bitStream.Read(sceneUid);
+			for (Scene* scene : loadedScenes)
+			{
+				if (scene->uid == sceneUid)
+				{
+					scene->DeserializeSnapshot(bitStream);
+					break;
+				}
+			}
+		}
+		break;
+
 	}
 }
 
@@ -177,7 +275,7 @@ bool SceneManager::SetActiveScene(STRCODE sceneId)
 	// Look for the scene in scenesToBeLoaded & loadedScenes
 	for (Scene* scene : scenesToBeLoaded)
 	{
-		if (scene->GetUID() == sceneId)
+		if (scene->GetUid() == sceneId)
 		{
 			toBeSetAsActive = scene;
 			return true;
@@ -185,12 +283,12 @@ bool SceneManager::SetActiveScene(STRCODE sceneId)
 	}
 	for (Scene* scene : loadedScenes)
 	{
-		if (scene->GetUID() == sceneId)
+		if (scene->GetUid() == sceneId)
 		{
 			// Ensure that this scene is not scheduled to be deleted
 			auto it = std::find_if(scenesToBeUnloaded.begin(), scenesToBeUnloaded.end(),
 								   [sceneId](Scene* sc) {
-										return sc->GetUID() == sceneId;
+										return sc->GetUid() == sceneId;
 									});
 			THROW_RUNTIME_ERROR(it != scenesToBeUnloaded.end(), "Error! The scene being set as active does not exist anymore.");
 			toBeSetAsActive = scene;
@@ -210,7 +308,7 @@ Scene* SceneManager::FindScene(STRCODE sceneId)
 {
 	for (Scene* scene : loadedScenes)
 	{
-		if (scene->GetUID() == sceneId)
+		if (scene->GetUid() == sceneId)
 		{
 			return scene;
 		}
@@ -228,14 +326,14 @@ bool SceneManager::UnloadScene(STRCODE sceneId)
 {
 	// Ensure that user is not trying to remove the active scene
 	Scene* actualActiveScene = (toBeSetAsActive == nullptr) ? activeScene : toBeSetAsActive;
-	if (sceneId == actualActiveScene->GetUID())
+	if (sceneId == actualActiveScene->GetUid())
 	{
 		return false;
 	}
 
 	for (Scene* scene : loadedScenes)
 	{
-		if (scene->GetUID() == sceneId)
+		if (scene->GetUid() == sceneId)
 		{
 			scenesToBeUnloaded.push_back(scene);
 			return true;

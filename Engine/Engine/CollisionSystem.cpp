@@ -1,18 +1,17 @@
 #include "EngineCore.h"
 #include "CollisionSystem.h"
+#include "Collider.h"
+#include "BoxCollider.h"
+#include "CircleCollider.h"
 
 #define NDEBUG_COLLISION_SYSTEM
 
-CollisionSystem* CollisionSystem::instance = nullptr;
-
 void CollisionSystem::Initialize()
 {
-
 }
 
 void CollisionSystem::Destroy()
 {
-
 }
 
 void CollisionSystem::Update()
@@ -20,7 +19,7 @@ void CollisionSystem::Update()
 	auto potentialCollisions = BroadPhaseDetection();
 	auto currentFrameCollisions = NarrowPhaseDetection(potentialCollisions);
 
-	std::set<std::pair<ICollider*, ICollider*>> collisionsToRemove;
+	std::set<std::pair<Collider*, Collider*>> collisionsToRemove;
 
 	//flush exit and stay lists
 	enterCollisions.clear();
@@ -74,31 +73,28 @@ void CollisionSystem::Update()
 
 	// Update ongoing collisions for the next frame
 	ongoingCollisions = std::move(currentFrameCollisions);
-#ifdef DEBUG_COLLISION_SYSTEM
-	LOG(ongoingCollisions.size() << " collisions Collisioning.");
-#endif
 }
 
-void CollisionSystem::AddCollider(ICollider* collider)
+void CollisionSystem::AddCollider(Collider* collider)
 {
 	colliders.push_back(collider);
 }
 
-void CollisionSystem::RemoveCollider(ICollider* collider)
+void CollisionSystem::RemoveCollider(Collider* collider)
 {
 	colliders.remove(collider);
 }
 
-std::list<std::pair<ICollider*, ICollider*>> CollisionSystem::BroadPhaseDetection()
+std::list<std::pair<Collider*, Collider*>> CollisionSystem::BroadPhaseDetection()
 {
-	std::list<std::pair<ICollider*, ICollider*>> potentialCollisions;
+	std::list<std::pair<Collider*, Collider*>> potentialCollisions;
 	for (auto it1 = colliders.begin(); it1 != colliders.end(); ++it1) 
 	{
 		for (auto it2 = std::next(it1); it2 != colliders.end(); ++it2) 
 		{
 
-			ICollider* collider1 = *it1;
-			ICollider* collider2 = *it2;
+			Collider* collider1 = *it1;
+			Collider* collider2 = *it2;
 
 
 			// Calculate bounding circle for each collider, treating them all as circles for broad phase.
@@ -120,14 +116,14 @@ std::list<std::pair<ICollider*, ICollider*>> CollisionSystem::BroadPhaseDetectio
 	return potentialCollisions;
 }
 
-std::set<std::pair<ICollider*, ICollider*>> CollisionSystem::NarrowPhaseDetection(const std::list<std::pair<ICollider*, ICollider*>>& potentialCollisions) {
+std::set<std::pair<Collider*, Collider*>> CollisionSystem::NarrowPhaseDetection(const std::list<std::pair<Collider*, Collider*>>& potentialCollisions) {
 	
-	std::set<std::pair<ICollider*, ICollider*>> currentFrameCollisions;
+	std::set<std::pair<Collider*, Collider*>> currentFrameCollisions;
 
 	for (const auto& collisionPair : potentialCollisions) 
 	{
-		ICollider* collider1 = collisionPair.first;
-		ICollider* collider2 = collisionPair.second;
+		Collider* collider1 = collisionPair.first;
+		Collider* collider2 = collisionPair.second;
 
 		bool isCollision = false;
 
@@ -169,7 +165,7 @@ float DistanceSquared(const Vec2& a, const Vec2& b)
 }
 
 // Helper function for Circle-Circle collision
-bool CollisionSystem::CircleCircleCollision(ICollider* col1, ICollider* col2) 
+bool CollisionSystem::CircleCircleCollision(Collider* col1, Collider* col2) 
 {
 	CircleCollider* circle1 = static_cast<CircleCollider*>(col1);
 	CircleCollider* circle2 = static_cast<CircleCollider*>(col2);
@@ -179,7 +175,7 @@ bool CollisionSystem::CircleCircleCollision(ICollider* col1, ICollider* col2)
 }
 
 // Helper function for Box-Box collision using AABB (Axis-Aligned Bounding Box)
-bool CollisionSystem::BoxBoxCollision(ICollider* col1, ICollider* col2) 
+bool CollisionSystem::BoxBoxCollision(Collider* col1, Collider* col2) 
 {
 	BoxCollider* box1 = static_cast<BoxCollider*>(col1);
 	BoxCollider* box2 = static_cast<BoxCollider*>(col2);
@@ -202,7 +198,7 @@ bool CollisionSystem::BoxBoxCollision(ICollider* col1, ICollider* col2)
 }
 
 // Helper function for Circle-Box collision using AABB (Axis-Aligned Bounding Box)
-bool CollisionSystem::CircleBoxCollision(ICollider* col1, ICollider* col2) 
+bool CollisionSystem::CircleBoxCollision(Collider* col1, Collider* col2) 
 {
 	BoxCollider* box = static_cast<BoxCollider*>(col1);
 	CircleCollider* circle = static_cast<CircleCollider*>(col2);
@@ -222,6 +218,6 @@ bool CollisionSystem::CircleBoxCollision(ICollider* col1, ICollider* col2)
 	return distanceSquared < (circleRadius * circleRadius);
 }
 
-void CollisionSystem::ResolveCollision(ICollider* col1, ICollider* col2)
+void CollisionSystem::ResolveCollision(Collider* col1, Collider* col2)
 {
 }

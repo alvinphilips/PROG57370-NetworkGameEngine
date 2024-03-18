@@ -12,16 +12,6 @@ Object::Object()
     guid = GUIDTostring(uuid);
 }
 
-Object::Object(std::string guid) : guid(std::move(guid))
-{
-    uid = GetHashCode(this->guid.c_str());
-}
-
-Object::Object(std::string guid, std::string name) : name(std::move(name)), guid(std::move(guid))
-{
-    uid = GetHashCode(this->guid.c_str());
-}
-
 void Object::Load(json::JSON& node)
 {
     if (node.hasKey("Name"))
@@ -29,9 +19,31 @@ void Object::Load(json::JSON& node)
         name = node["Name"].ToString();
     }
 
-    if (node.hasKey("GUID"))
-    {
-        guid = node["GUID"].ToString();
-        uid = GetHashCode(guid.c_str());
-    }
+    THROW_RUNTIME_ERROR(!node.hasKey("GUID"), "All objects require a GUID");
+    guid = node["GUID"].ToString();
+    uid = GetHashCode(guid.c_str());
 }
+
+#pragma region Network Code
+
+void Object::Serialize(RakNet::BitStream& bitStream) const
+{
+    bitStream.Write(uid);
+}
+
+void Object::Deserialize(RakNet::BitStream& bitStream)
+{
+    bitStream.Read(uid);
+}
+
+void Object::SerializeCreate(RakNet::BitStream& bitStream) const
+{
+    bitStream.Write(uid);
+}
+
+void Object::DeserializeCreate(RakNet::BitStream& bitStream)
+{
+    bitStream.Read(uid);
+}
+
+#pragma endregion

@@ -2,22 +2,116 @@
 #include "Scene.h"
 #include "Entity.h"
 #include "AssetManager.h"
+#include "NetworkServer.h"
 
-Scene::Scene()
+void Scene::Serialize(RakNet::BitStream& bitStream) const
 {
-	UUID _guid;
-	// Create a new GUID
-	CreateUUID(&_guid);
-
-	guid = GUIDTostring(_guid);
-	uid = GetHashCode(guid.c_str());
+	bitStream.Write((unsigned int)entities.size());
+	for (Entity* entity : entities)
+	{
+		// Write the component id so we can look it up later
+		bitStream.Write(entity->uid);
+		entity->Serialize(bitStream);
+	}
 }
 
-Scene::Scene(std::string _guid)
+void Scene::Deserialize(RakNet::BitStream& bitStream)
 {
-	// Use the GUID passed to it
-	uid = GetHashCode(guid.c_str());
-	guid = _guid;
+	// Now the rest of the components
+	unsigned int entityCount = 0;
+	bitStream.Read(entityCount);
+	for (int i = 0; i < entityCount; i++)
+	{
+		STRCODE entityUid;
+		bitStream.Read(entityUid);
+		for (const auto entity : entities)
+		{
+			if (entity->GetUid() == entityUid)
+			{
+				entity->Deserialize(bitStream);
+			}
+		}
+	}
+}
+
+void Scene::SerializeCreateEntity(Entity* entity, RakNet::BitStream& bitStream) const
+{
+	// Write the Scene id (looked up by the manager)
+	bitStream.Write(uid);
+
+	// Entity will write the id and other associated data
+	entity->SerializeCreate(bitStream);
+}
+
+void Scene::DeserializeCreateEntity(RakNet::BitStream& bitStream)
+{
+	Entity* entity = new Entity();
+	entity->ownerScene = this;
+	entity->DeserializeCreate(bitStream);
+	entities.push_back(entity);
+}
+
+void Scene::DeserializeCreateEntityComponent(RakNet::BitStream& bitStream)
+{
+	STRCODE entityUid;
+	bitStream.Read(entityUid);
+
+	for (const auto entity : entities)
+	{
+		if (entity->GetUid() == entityUid)
+		{
+			entity->DeserializeCreateComponent(bitStream);
+		}
+	}
+}
+
+void Scene::SerializeSnapshot(RakNet::BitStream& bitStream)
+{
+	// Write the Scene id (looked up by the scene manager)
+	bitStream.Write(uid);
+
+	// Write the total number of enities
+	bitStream.Write((unsigned int)entities.size());
+
+	for (const auto entity : entities)
+	{
+		// Write the Entity id (looked up by the scene)
+		bitStream.Write(entity->uid);
+
+		// Entity will write entity (everything neded)
+		entity->SerializeCreate(bitStream);
+	}
+}
+
+void Scene::DeserializeSnapshot(RakNet::BitStream& bitStream)
+{
+	unsigned int numberOfEntities = -1;
+	bitStream.Read(numberOfEntities);
+
+	for (int i = 0; i < numberOfEntities; i++)
+	{
+		STRCODE entityId = 0;
+		bitStream.Read(entityId);
+
+		bool found = false;
+		for (const auto entity : entities)
+		{
+			if (entity->GetUid() == entityId)
+			{
+				entity->DeserializeCreate(bitStream);
+				found = true;
+				break;
+			}
+		}
+
+		if (found == false)
+		{
+			Entity* entity = new Entity();
+			entity->ownerScene = this;
+			entity->DeserializeCreate(bitStream);
+			entities.push_back(entity);
+		}
+	}
 }
 
 void Scene::Initialize()
@@ -43,7 +137,7 @@ void Scene::Load(json::JSON& sceneJSON)
 				if (assetJSON.hasKey("GUID"))
 				{
 					std::string assetGUID = assetJSON["GUID"].ToString();
-					AssetManager::Get().LoadSceneAsset(assetGUID);
+					AssetManager::Instance().LoadSceneAsset(assetGUID);
 					assetsGUIDs.push_back(assetGUID);
 				}
 			}
@@ -85,8 +179,25 @@ void Scene::PreUpdate()
 	for (Entity* entity : entitiesToBeAdded)
 	{
 		entities.push_back(entity);
+
+		if (NetworkServer::Instance().IsInitialized())
+		{
+			RakNet::BitStream bitStream;
+			bitStream.Write((unsigned char)NetworkPacketIds::MSG_SCENE_MANAGER);
+			bitStream.Write((unsigned char)NetworkPacketIds::MSG_CREATE_ENTITY);
+			SerializeCreateEntity(entity, bitStream);
+			NetworkServer::Instance().SendPacket(bitStream);
+		}
 	}
 	entitiesToBeAdded.clear();
+
+	for (Entity* entity : entities)
+	{
+		if (entity->IsActive())
+		{
+			entity->PreUpdate();
+		}
+	}
 }
 
 void Scene::Update()
@@ -95,9 +206,7 @@ void Scene::Update()
 	{
 		if (entity->IsActive())
 		{
-			entity->PreUpdate();
 			entity->Update();
-			entity->PostUpdate();
 		}
 	}
 }
@@ -111,6 +220,14 @@ void Scene::PostUpdate()
 		entities.remove(entity);
 	}
 	entitiesToDestroy.clear();
+
+	for (Entity* entity : entities)
+	{
+		if (entity->IsActive())
+		{
+			entity->PostUpdate();
+		}
+	}
 }
 
 void Scene::Destroy()
@@ -125,7 +242,7 @@ void Scene::Destroy()
 	// Unload all assets
 	for (std::string& assetGUID : assetsGUIDs)
 	{
-		AssetManager::Get().UnloadSceneAsset(assetGUID);
+		AssetManager::Instance().UnloadSceneAsset(assetGUID);
 	}
 }
 
@@ -133,7 +250,6 @@ Entity* Scene::CreateEntity()
 {
 	Entity* entity = new Entity();
 	entity->ownerScene = this;
-	// The scene that creates an entity has its ownership
 	entitiesToBeAdded.push_back(entity);
 	return entity;
 }
@@ -200,19 +316,3 @@ bool Scene::RemoveEntity(STRCODE entityId)
 	}
 	return false;
 }
-
-std::string& Scene::GetGUID()
-{
-	return guid;
-}
-
-STRCODE Scene::GetUID()
-{
-	return uid;
-}
-
-std::string& Scene::GetName()
-{
-	return name;
-}
-

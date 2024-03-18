@@ -11,27 +11,28 @@ class Component : public Object
 {
     DECLARE_ABSTRACT_DERIVED_CLASS(Component, Object)
 
-protected:
-    Entity* ownerEntity = nullptr;  //< Pointer to the entity that owns this component.
-
 public:
-    Component() = default;
-    ~Component() override = default;
-    
-    void Initialize() override;
+    Entity* GetOwner() const { return owner; }
+
+    // Inherited via ISerializable
+    void Serialize(RakNet::BitStream& bitStream) const override;
+    void Deserialize(RakNet::BitStream& bitStream) override;
+    void SerializeCreate(RakNet::BitStream& bitStream) const override;
+    void DeserializeCreate(RakNet::BitStream& bitStream) override;
+
+protected:
     void Destroy() override;
-    
-    virtual void Update() {
-#ifdef DEBUG_COMPONENT
-        LOG("Component Update called on " << this->uid)
-#endif
-    };
 
-    void Load(json::JSON& node) override;
-    void SetOwner(Entity* owner);
-    Entity* GetOwner() const;
+    // Update is protected and can only be accessed from Entity
+    virtual void PreUpdate() {};
+    virtual void Update() {};
+    virtual void PostUpdate() {};
 
-    friend class Entity; // To allow Entity to access protected/private members
+protected:
+    Entity* owner = nullptr;  //< Pointer to the entity that owns this component.
+
+    // To allow Entity to access protected/private members
+    friend class Entity;
 };
 
 #endif // !_COMPONENT_H_

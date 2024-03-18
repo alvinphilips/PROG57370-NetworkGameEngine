@@ -1,35 +1,31 @@
 #include "EngineCore.h"
 #include "Component.h"
-#include "Entity.h"
-
-#define NDEBUG_COMPONENT
 
 IMPLEMENT_ABSTRACT_CLASS(Component)
 
-void Component::Initialize()
-{
-}
-
-void Component::Load(json::JSON& node)
-{
-    Object::Load(node);
-#ifdef DEBUG_COMPONENT
-    LOG(node.dump())
-#endif
-}
-
 void Component::Destroy()
 {
-    ownerEntity = nullptr;
     Object::Destroy();
+    owner = nullptr;
 }
 
-void Component::SetOwner(Entity* owner)
+void Component::Serialize(RakNet::BitStream& bitStream) const
 {
-    ownerEntity = owner;
+    Object::Serialize(bitStream);
 }
 
-Entity* Component::GetOwner() const
+void Component::Deserialize(RakNet::BitStream& bitStream)
 {
-    return ownerEntity;
+    Object::Deserialize(bitStream);
 }
+
+void Component::SerializeCreate(RakNet::BitStream& bitStream) const
+{
+    Object::SerializeCreate(bitStream);
+}
+
+void Component::DeserializeCreate(RakNet::BitStream& bitStream)
+{
+    Object::DeserializeCreate(bitStream);
+}
+

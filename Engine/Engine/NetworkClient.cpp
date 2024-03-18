@@ -1,6 +1,6 @@
 #include "EngineCore.h"
 #include "NetworkClient.h"
-//#include "GameObjectManager.h"
+#include "SceneManager.h"
 
 void NetworkClient::Initialize()
 {
@@ -120,6 +120,10 @@ void NetworkClient::_Update()
 		case ID_CONNECTION_LOST:
 			state = NetworkClient::NETWORK_ERROR;
 			std::cout << "Disconnected from server" << std::endl;
+			break;
+
+		case MSG_SCENE_MANAGER:
+			SceneManager::Instance().ProcessPacket(bs);
 			break;
 		}
 

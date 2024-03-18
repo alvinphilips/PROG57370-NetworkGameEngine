@@ -7,33 +7,17 @@
 
 class Time
 {
+	DECLARE_SINGLETON(Time)
+
 public:
-	static Time& Instance()
-	{
-		if (instance == nullptr)
-		{
-			instance = new Time();
-			instance->Initialize();
-		}
-		return *instance;
-	}
-
-	void Destroy()
-	{
-		if (instance == nullptr)
-		{
-			delete instance;
-		}
-	}
-
-	void Update();
-
 	float DeltaTime() { return deltaTime.count(); }
 	float TotalTime() { return totalTime.count(); }
 	unsigned int FrameCount() { return frameCount; }
 
 private:
 	void Initialize();
+	void Update();
+	void Destroy();
 
 private:
 	unsigned int frameCount = 0;
@@ -42,13 +26,7 @@ private:
 	std::chrono::time_point<std::chrono::system_clock> beginTime;
 	std::chrono::time_point<std::chrono::system_clock> endTime;
 
-	static Time* instance;
-
-private:
-	inline explicit Time() = default;
-	inline ~Time() = default;
-	inline explicit Time(Time const&) = delete;
-	inline Time& operator=(Time const&) = delete;
+	friend class Engine;
 };
 
 #endif

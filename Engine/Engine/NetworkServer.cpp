@@ -1,5 +1,6 @@
 #include "EngineCore.h"
 #include "NetworkServer.h"
+#include "SceneManager.h"
 
 void NetworkServer::Initialize()
 {
@@ -92,6 +93,7 @@ void NetworkServer::_Update()
 			// Somebody connected
 			std::cout << "Got connection from " << packet->systemAddress.ToString(true) << std::endl;
 			clientConnections.push_back(packet->guid);
+			SceneManager::Instance().SerializeSnapshot();
 			break;
 
 		case ID_DISCONNECTION_NOTIFICATION:

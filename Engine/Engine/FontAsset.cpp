@@ -1,6 +1,5 @@
 #include "EngineCore.h"
 #include "FontAsset.h"
-
 #include "RenderSystem.h"
 
 IMPLEMENT_DYNAMIC_CLASS(FontAsset)
@@ -31,11 +30,6 @@ void FontAsset::Load(json::JSON& node)
 		font_size = node.at("FontSize").ToInt();
 	}
 }
-
-TTF_Font* FontAsset::GetFont() const
-{
-	return font;
-};
 
 void FontAsset::SetFontSize(int size) const
 {

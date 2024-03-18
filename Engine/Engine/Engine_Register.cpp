@@ -2,7 +2,6 @@
 
 #include "Object.h"
 #include "Component.h"
-#include "Renderable.h"
 #include "FontSprite.h"
 #include "AnimatedSprite.h"
 #include "Transform.h"
@@ -11,7 +10,7 @@
 #include "MusicAsset.h"
 #include "SoundAsset.h"
 #include "TextureAsset.h"
-#include "ICollider.h"
+#include "Collider.h"
 #include "CircleCollider.h"
 #include "BoxCollider.h"
 
@@ -19,7 +18,6 @@ void Engine_Register()
 {
 	REGISTER_TYPECLASS(Object);
 	REGISTER_TYPECLASS(Component);
-	REGISTER_TYPECLASS(Renderable);
 	REGISTER_TYPECLASS(Sprite);
 	REGISTER_TYPECLASS(FontSprite);
 	REGISTER_TYPECLASS(AnimatedSprite);
@@ -29,7 +27,7 @@ void Engine_Register()
 	REGISTER_TYPECLASS(FontAsset);
 	REGISTER_TYPECLASS(SoundAsset);
 	REGISTER_TYPECLASS(MusicAsset);
-	REGISTER_TYPECLASS(ICollider);
+	REGISTER_TYPECLASS(Collider);
 	REGISTER_TYPECLASS(BoxCollider);
 	REGISTER_TYPECLASS(CircleCollider);
 }

@@ -1,62 +1,49 @@
 #include "EngineCore.h"
+#include "Collider.h"
 #include "CollisionSystem.h"
+#include "Sprite.h"
 #include "AnimatedSprite.h"
 
-IMPLEMENT_ABSTRACT_CLASS(ICollider);
+IMPLEMENT_ABSTRACT_CLASS(Collider);
 
-ICollider::ICollider() 
+Collider::Collider() 
 {
 	CollisionSystem::Instance().AddCollider(this);
 }
 
-ICollider::~ICollider() 
+Collider::~Collider() 
 {
 	CollisionSystem::Instance().RemoveCollider(this);
 }
 
-void ICollider::Initialize()
+void Collider::Initialize()
 {
 	Component::Initialize();
-	if (ownerEntity->HasComponent("Sprite"))
+	if (owner->HasComponent("Sprite"))
 	{
 		// TODO: unsafe if our Sprite Component is destroyed.
-		m_rect = &((Sprite*)(ownerEntity->GetComponent("Sprite")))->targetRect;
+		rect = &((Sprite*)(owner->GetComponent("Sprite")))->GetTargetRect();
 	}
-	else if (ownerEntity->HasComponent("AnimatedSprite"))
+	else if (owner->HasComponent("AnimatedSprite"))
 	{
 		// TODO: unsafe if our AnimatedSprite Component is destroyed.
-		m_rect = &((AnimatedSprite*)(ownerEntity->GetComponent("AnimatedSprite")))->targetRect;
+		rect = &((AnimatedSprite*)(owner->GetComponent("AnimatedSprite")))->GetTargetRect();
 	}
 }
 
-void ICollider::StorePosition(const Vec2 position) 
+Vec2 Collider::GetPosition() const
 {
-	previousPosition = position;
+	return owner->GetTransform().position;
 }
 
-void ICollider::ResetPosition() const
+void Collider::ResetPosition() const
 {
-	ownerEntity->GetTransform().position = previousPosition;
+	owner->GetTransform().position = previousPosition;
 }
 
-bool ICollider::IsSolid() const 
+std::list<Collider*> Collider::OnCollisionEnter() 
 {
-	return isSolid;
-}
-
-void ICollider::SetSolid(const bool solid) 
-{
-	isSolid = solid;
-}
-
-Vec2 ICollider::GetPosition() const
-{
-	return ownerEntity->GetTransform().position;
-}
-
-std::list<ICollider*> ICollider::OnCollisionEnter() 
-{
-	std::list<ICollider*> result;
+	std::list<Collider*> result;
 	for (const auto& [first, second] : CollisionSystem::Instance().enterCollisions) 
 	{
 		// Skip checking for collisions if both Colliders are the same
@@ -78,9 +65,9 @@ std::list<ICollider*> ICollider::OnCollisionEnter()
 }
 
 // Called when the collider stays in collision
-std::list<ICollider*> ICollider::OnCollisionStay() 
+std::list<Collider*> Collider::OnCollisionStay() 
 {
-	std::list<ICollider*> result;
+	std::list<Collider*> result;
 	for (const auto& [first, second] : CollisionSystem::Instance().stayCollisions) 
 	{
 		// Skip checking for collisions if both Colliders are the same
@@ -102,9 +89,9 @@ std::list<ICollider*> ICollider::OnCollisionStay()
 }
 
 // Called when the collider exits a collision
-std::list<ICollider*> ICollider::OnCollisionExit() 
+std::list<Collider*> Collider::OnCollisionExit() 
 {
-	std::list<ICollider*> result;
+	std::list<Collider*> result;
 	for (const auto& [first, second] : CollisionSystem::Instance().exitCollisions) 
 	{
 		// Skip checking for collisions if both Colliders are the same

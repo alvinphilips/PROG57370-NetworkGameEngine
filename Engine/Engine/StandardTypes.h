@@ -147,7 +147,7 @@ inline STRCODE GUIDToSTRCODE(UUID& guid)
 /// </summary>
 #define DECLARE_SINGLETON(className)\
 public:\
-	inline static className& Get() \
+	inline static className& Instance() \
 	{\
 		static className instance;\
 		return instance;\

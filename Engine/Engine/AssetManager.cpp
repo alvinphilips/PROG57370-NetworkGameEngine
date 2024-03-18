@@ -1,5 +1,6 @@
 #include "EngineCore.h"
 #include "AssetManager.h"
+#include "Asset.h"
 #include "Scene.h"
 
 #include <filesystem>
@@ -34,8 +35,9 @@ Asset* HandleAssetEntry(const std::filesystem::directory_entry& entry)
 	}
 
 	const auto assetType = node.at("AssetType").ToString();
-	auto asset = (Asset*)CreateObject(assetType.c_str());
-	asset->SetFilepath(entry.path().relative_path().replace_extension("").generic_string());
+	Asset* asset = (Asset*)CreateObject(assetType.c_str());
+	std::string path = entry.path().relative_path().replace_extension("").generic_string();
+	asset->SetFilepath(path);
 	asset->Load(node);
 	return asset;
 }

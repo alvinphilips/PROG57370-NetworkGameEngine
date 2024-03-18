@@ -3,25 +3,6 @@
 #include "Renderable.h"
 #include "Scene.h"
 
-RenderSystem* RenderSystem::_instance = nullptr;
-
-RenderSystem& RenderSystem::Instance()
-{
-	if (_instance == nullptr)
-	{
-		_instance = new RenderSystem();
-	}
-	return *_instance;
-}
-
-RenderSystem::RenderSystem()
-{
-}
-
-RenderSystem::~RenderSystem()
-{
-}
-
 void RenderSystem::Initialize()
 {
 	//Pulls the window information from the RenderSettings file located in Assets
@@ -77,8 +58,6 @@ void RenderSystem::Destroy()
 {
 	SDL_DestroyWindow(_window);
 	SDL_DestroyRenderer(_renderer);
-
-	delete _instance;
 }
 
 void RenderSystem::Update()
@@ -86,9 +65,9 @@ void RenderSystem::Update()
 	SDL_RenderClear(_renderer);
 	SDL_SetRenderDrawColor(_renderer, _backgroundColor.r, _backgroundColor.g, _backgroundColor.b, _backgroundColor.a);
 
-	for (Renderable* renderable : _renderables)
+	for (auto renderable : _renderables)
 	{
-		if (!renderable->ownerEntity->GetParentScene()->isEnabled)
+		if (!renderable->owner->GetParentScene()->IsEnabled())
 		{
 			continue;
 		}

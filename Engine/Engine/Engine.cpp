@@ -16,8 +16,6 @@
 #include "NetworkClient.h"
 #include "NetworkServer.h"
 
-Engine* Engine::instance = nullptr;
-
 extern void Engine_Register();
 
 void Engine::Initialize()
@@ -30,29 +28,27 @@ void Engine::Initialize()
 	(serverClientChoice == 0 ? NetworkServer::Instance().Initialize() : NetworkClient::Instance().Initialize());
 
 	// Load the managers
-	AudioSystem::Get().Load("../Assets/AudioSystem.json");
-	AssetManager::Get().Load("../Assets/AssetManager.json");
+	AudioSystem::Instance().Load("../Assets/AudioSystem.json");
+	AssetManager::Instance().Load("../Assets/AssetManager.json");
 
-	AudioSystem::Get().Initialize();
-	AssetManager::Get().Initialize();
+	AudioSystem::Instance().Initialize();
+	AssetManager::Instance().Initialize();
 
 	RenderSystem::Instance().Initialize();
-	SceneManager::Get().Load();
+	SceneManager::Instance().Load();
 
-	SceneManager::Get().Initialize();
-	InputSystem::Instance().registerQuitEventHandler([this] {isRunning = false; });
+	SceneManager::Instance().Initialize();
+	InputSystem::Instance().RegisterQuitEventHandler([this] {isRunning = false; });
 }
 
 void Engine::Destroy()
 {
 	Time::Instance().Destroy();
 	CollisionSystem::Instance().Destroy();
-	SceneManager::Get().Destroy();
-	AssetManager::Get().Destroy();
-	AudioSystem::Get().Destroy();
+	SceneManager::Instance().Destroy();
+	AssetManager::Instance().Destroy();
+	AudioSystem::Instance().Destroy();
 	RenderSystem::Instance().Destroy();
-	delete instance;
-	instance = nullptr;
 }
 
 void Engine::GameLoop()
@@ -66,17 +62,23 @@ void Engine::GameLoop()
 		NetworkServer::Instance().Update();
 
 		// --------------------- Pre-update Phase ---------------------
-		SceneManager::Get().PreUpdate();
+		SceneManager::Instance().PreUpdate();
 
 		// --------------------- Update Phase ---------------------
-		SceneManager::Get().Update();
+		SceneManager::Instance().Update();
 		RenderSystem::Instance().Update();
 		CollisionSystem::Instance().Update();
 
 		// --------------------- Post-update Phase ---------------------
-		SceneManager::Get().PostUpdate();
+		SceneManager::Instance().PostUpdate();
 
 		// --------------------- Input Phase ---------------------
 		InputSystem::Instance().Update();
+
+		// --------------------- Network System Update ---------------------
+		if (NetworkServer::Instance().IsInitialized())
+		{
+			SceneManager::Instance().NetworkUpdate();
+		}
 	}
 }

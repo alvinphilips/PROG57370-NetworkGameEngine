@@ -6,40 +6,22 @@
 class SoundAsset;
 class MusicAsset;
 
-class AudioSystem {
-	/**
-	 * @brief Sample Rate to use.
-	 * 
-	 */
-	int sampleRate = 44100;
-	DECLARE_SINGLETON(AudioSystem);
-	friend class Engine;
-protected:
+class AudioSystem
+{
+	DECLARE_SINGLETON(AudioSystem)
 
-	void Initialize();
-
-	void Destroy();
-	
-	/**
-	 * @brief Load the AudioSystem's settings.
-	 * 
-	 * @param config_file File to get configuration values from.
-	 */
-	void Load(const std::string& config_file);
 public:
-	/**
-	 * @brief Set the currently playing Music.
-	 * 
-	 * @param music MusicAsset to play.
-	 */
 	void SetMusic(MusicAsset* music);
-
-	/**
-	 * @brief Play a SoundAsset.
-	 * 
-	 * @param sound SoundAsset to play.
-	 */
 	void PlayFX(SoundAsset* sound);
+
+protected:
+	void Load(const std::string& config_file);
+	void Initialize();
+	void Destroy();
+
+private:
+	int sampleRate = 44100;
+	friend class Engine;
 };
 
 #endif

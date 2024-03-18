@@ -4,6 +4,8 @@
 
 class NetworkServer final
 {
+	DECLARE_SINGLETON(NetworkServer)
+
 public:
 	enum NetworkServerState
 	{
@@ -11,12 +13,6 @@ public:
 		CREATE_SERVER,
 		RUNNING
 	};
-
-	inline static NetworkServer& Instance()
-	{
-		static NetworkServer instance;
-		return instance;
-	}
 
 	bool IsInitialized() { return initialized; }
 	void SendPacket(RakNet::BitStream& bs);
@@ -26,21 +22,16 @@ protected:
 	void Update();
 
 private:
-	int port;
-	bool initialized = false;
-	NetworkServerState state;
-
-	RakNet::RakPeerInterface* rakInterface;
-	std::vector<RakNet::RakNetGUID> clientConnections;
-
-private:
 	void LoadSettings();
 	void SetupServer();
 	void _Update();
 
 private:
-	NetworkServer() = default;
-	~NetworkServer() = default;
-	NetworkServer(NetworkServer const&) = delete;
+	int port;
+	bool initialized = false;
+	NetworkServerState state;
+	RakNet::RakPeerInterface* rakInterface;
+	std::vector<RakNet::RakNetGUID> clientConnections;
+
 	friend class Engine;
 };

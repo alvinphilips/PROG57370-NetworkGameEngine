@@ -4,6 +4,8 @@
 
 class NetworkClient final
 {
+	DECLARE_SINGLETON(NetworkClient)
+
 public:
 	enum NetworkClientState
 	{
@@ -14,17 +16,16 @@ public:
 		NETWORK_ERROR
 	};
 
-	inline static NetworkClient& Instance()
-	{
-		static NetworkClient instance;
-		return instance;
-	}
-
 	bool IsInitialized() { return initialized; }
 
 protected:
 	void Initialize();
 	void Update();
+
+private:
+	void LoadSettings();
+	void WaitingForFirstPacket();
+	void _Update();
 
 private:
 	int port;
@@ -35,14 +36,5 @@ private:
 	RakNet::RakPeerInterface* rakInterface;
 	RakNet::RakNetGUID serverGUID;
 
-private:
-	void LoadSettings();
-	void WaitingForFirstPacket();
-	void _Update();
-
-private:
-	NetworkClient() = default;
-	~NetworkClient() = default;
-	NetworkClient(NetworkClient const&) = delete;
 	friend class Engine;
 };

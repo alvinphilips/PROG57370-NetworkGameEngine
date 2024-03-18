@@ -10,6 +10,7 @@ void TextureAsset::Initialize()
 
 	SDL_Surface* image = IMG_Load(filepath.c_str());
 	texture = SDL_CreateTextureFromSurface(&RenderSystem::Instance().GetRenderer(), image);
+	printf("%s\n", SDL_GetError()); //Returns "Invalid Renderer".
 	SDL_QueryTexture(texture, nullptr, nullptr, &width, &height);
 	SDL_FreeSurface(image);
 }
@@ -20,14 +21,4 @@ void TextureAsset::Destroy()
 
 	SDL_DestroyTexture(texture);
 	texture = nullptr;
-}
-
-void TextureAsset::Load(json::JSON& json)
-{
-	Asset::Load(json);
-}
-
-IVec2 TextureAsset::GetDimensions() const
-{
-	return IVec2(width, height);
 }

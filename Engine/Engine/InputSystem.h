@@ -5,70 +5,45 @@
 
 class InputSystem
 {
-
+	DECLARE_SINGLETON(InputSystem)
 
 public:
-	// Singleton pattern: 
 
-	friend class Engine;
-
-	static InputSystem& Instance() {
-
-		if (instance == nullptr)
-		{
-			instance = new InputSystem();
-
-		}
-		return *instance;
-	}
-	InputSystem();
-	~InputSystem();
 	void Initialize();
 	void Update();
 
-	void triggerKeyEvent(SDL_Keycode key, bool pressed);
+	void TriggerKeyEvent(SDL_Keycode key, bool pressed);
 
-	void triggerMouseEvent(Uint8 button, bool pressed);
+	void TriggerMouseEvent(Uint8 button, bool pressed);
 
-	bool isKeyPressed(SDL_Keycode key) const;
-	bool areKeysPressed(const std::vector<SDL_Keycode>& keys) const;
-	bool isMouseButtonPressed(Uint8 button) const;
+	bool IsKeyPressed(SDL_Keycode key) const;
+	bool AreKeysPressed(const std::vector<SDL_Keycode>& keys) const;
+	bool IsMouseButtonPressed(Uint8 button) const;
 
-	bool isGamepadButtonPressed(SDL_JoystickID joystickID, SDL_GameControllerButton button) const;
+	bool IsGamepadButtonPressed(SDL_JoystickID joystickID, SDL_GameControllerButton button) const;
 
-	void handleGamepadAxis(SDL_JoystickID joystickID, SDL_GameControllerAxis axis, Sint16 value);
+	void HandleGamepadAxis(SDL_JoystickID joystickID, SDL_GameControllerAxis axis, Sint16 value);
 
-	float getGamepadAxisState(SDL_JoystickID joystickID, SDL_GameControllerAxis axis) const;
+	float GetGamepadAxisState(SDL_JoystickID joystickID, SDL_GameControllerAxis axis) const;
 
-	void registerQuitEventHandler(std::function<void()> handler);
+	void RegisterQuitEventHandler(std::function<void()> handler);
 
-	void handleQuitEvent();
+	void HandleQuitEvent();
 
-	void registerKeyEventHandler(SDL_Keycode key, bool onPress, std::function<void()> handler);
-	void handleGamepadConnection(int joystickIndex);
-	void registerMouseEventHandler(Uint8 button, bool onPress, std::function<void()> handler);
+	void RegisterKeyEventHandler(SDL_Keycode key, bool onPress, std::function<void()> handler);
+	void HandleGamepadConnection(int joystickIndex);
+	void RegisterMouseEventHandler(Uint8 button, bool onPress, std::function<void()> handler);
 
-	void initializeGamepads();
+	void InitializeGamepads();
 
-	void handleGamepadButton(SDL_JoystickID joystickID, SDL_GameControllerButton button, bool pressed);
-	void registerGamepadButtonEventHandler(SDL_JoystickID joystickID,
-		SDL_GameControllerButton button,
-		std::function<void(bool)> handler);
-
-
-
-
+	void HandleGamepadButton(SDL_JoystickID joystickID, SDL_GameControllerButton button, bool pressed);
+	void RegisterGamepadButtonEventHandler(SDL_JoystickID joystickID, SDL_GameControllerButton button, std::function<void(bool)> handler);
 
 private:
 	bool  keyStates[SDL_NUM_SCANCODES] = { false };
 	bool mouseButtonStates[5];
 	int gamepadId;
-	InputSystem(const InputSystem&) = delete;
 
-
-
-	InputSystem operator = (const InputSystem&) = delete;
-	static InputSystem* instance;
 	std::map<SDL_Keycode, std::function<void()>> keyPressHandlers;
 	std::map<SDL_Keycode, std::function<void()>> keyReleaseHandlers;
 	std::map<Uint8, std::function<void()>> mousePressHandlers;
@@ -79,9 +54,9 @@ private:
 	std::map<int, SDL_GameController*> gamepadMap;
 	std::map<SDL_JoystickID, std::map<SDL_GameControllerAxis, std::function<void(Sint16)>>> gamepadAxisEventHandlers;
 
-	
-
 	std::function<void()> quitEventHandler;
+
+	friend class Engine;
 
 };
 

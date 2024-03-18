@@ -11,13 +11,12 @@ IMPLEMENT_DYNAMIC_CLASS(FontSprite);
 
 void FontSprite::Initialize() 
 {
-	Renderable::Initialize();
 	RegenerateOutput();
 }
 
 void FontSprite::Update() 
 {
-	Renderable::Update(); 
+	Component::Update(); 
 	RegenerateOutput();
 
 	if (output != nullptr) 
@@ -25,7 +24,7 @@ void FontSprite::Update()
 		SDL_QueryTexture(output, nullptr, nullptr, &outputSizing.x, &outputSizing.y);
 	}
 
-	const Transform& transform = ownerEntity->GetTransform();
+	const Transform& transform = owner->GetTransform();
 
 	fontRect = { static_cast<int>(transform.position.x), static_cast<int>(transform.position.y),
 		( static_cast<int>(outputSizing.x * transform.scale.x)), (static_cast<int>(outputSizing.y * transform.scale.y)) };
@@ -35,8 +34,8 @@ void FontSprite::Update()
 
 void FontSprite::Destroy() 
 {
+	Component::Destroy();
 	SDL_DestroyTexture(output);
-	Renderable::Destroy();
 }
 
 void FontSprite::Render() 
@@ -46,7 +45,7 @@ void FontSprite::Render()
 		return;
 	}
 
-	const Transform& transform = ownerEntity->GetTransform();
+	const Transform& transform = owner->GetTransform();
     const auto size = IVec2(transform.scale * outputSizing);
     const IVec2 pos = transform.position - size / 2;
     fontRect = 
@@ -85,7 +84,7 @@ void FontSprite::Save(json::JSON& document) const
 
 void FontSprite::Load(json::JSON& node) 
 {
-	Renderable::Load(node);
+	Component::Load(node);
 
 	if (node.hasKey("Text")) 
 	{
@@ -103,7 +102,7 @@ void FontSprite::Load(json::JSON& node)
 
 	std::string guid = node["Font"].ToString();
 
-	font = (FontAsset*)(AssetManager::Get().GetAsset(guid));
+	font = (FontAsset*)(AssetManager::Instance().GetAsset(guid));
 	RegenerateOutput();
 }
 
