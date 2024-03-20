@@ -15,10 +15,31 @@ class Entity final : public Object
 
 public:
     bool HasComponent(const std::string& componentName) const;
+    
+    template <typename T = Component>
+    bool HasComponent() const
+    {
+	    return HasComponent(T::GetDerivedClassName());
+    }
+
     void AddComponents(const std::vector<std::string>& componentList);
     Component* GetComponent(const std::string& componentName) const;
+
+    template <typename T = Component>
+    T* GetComponent() const {
+		return (T*) GetComponent(T::GetClassNameW());
+	}
+
     Component* CreateComponent(const std::string& componentName);
+
+    template <typename T = Component>
+    T* CreateComponent()
+    {
+	    return (T*) CreateComponent(T::GetClassNameW());
+    }
+
     bool RemoveComponent(const Component* component);
+
     std::list<Component*> GetComponents() const { return components; }
     Component* GetComponentByUiD(STRCODE uid);
     Transform& GetTransform() { return transform; }

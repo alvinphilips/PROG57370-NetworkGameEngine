@@ -28,6 +28,18 @@ public:
 	Asset* GetAsset(std::string guid);
 	Asset* GetAsset(STRCODE id);
 
+	template <typename T = Asset>
+	T* GetAsset(const std::string& guid)
+	{
+		return (T*) GetAsset(guid);
+	}
+
+	template <typename T = Asset>
+	T* GetAsset(STRCODE id)
+	{
+		return (T*) GetAsset(id);
+	}
+
 	void RemoveAsset(std::string guid);
 	void RemoveAsset(STRCODE id);
 
